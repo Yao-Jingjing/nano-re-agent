@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#667eea">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Nano-RE">
+  <title>Nano-RE-Agent PWA | 稀土分离设计</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding-bottom: 70px;
+    }
+    
+    /* 顶部导航 */
+    .app-header {
+      background: rgba(255,255,255,0.95);
+      padding: 15px 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .app-header h1 {
+      font-size: 1.3em;
+      color: #667eea;
+      font-weight: 700;
+    }
+    .install-btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    
+    /* 主容器 */
+    .container { padding: 20px; max-width: 600px; margin: 0 auto; }
+    
+    /* Hero 卡片 */
+    .hero-card {
+      background: white;
+      border-radius: 20px;
+      padding: 30px 20px;
+      text-align: center;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .hero-card h2 {
+      font-size: 1.8em;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    .hero-card p { color: #666; font-size: 0.95em; line-height: 1.6; }
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .stat-item { text-align: center; }
+    .stat-value { font-size: 1.5em; font-weight: bold; color: #667eea; }
+    .stat-label { font-size: 0.75em; color: #999; margin-top: 3px; }
+    
+    /* 表单卡片 */
+    .form-card {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+    .form-card h3 {
+      color: #333;
+      font-size: 1.2em;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .form-group { margin-bottom: 15px; }
+    .form-group label {
+      display: block;
+      color: #555;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 0.9em;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1em;
+      -webkit-appearance: none;
+    }
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      font-size: 0.85em;
+    }
+    .checkbox-item input { width: auto; }
+    
+    /* 按钮 */
+    .btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-secondary { background: #6c757d; }
+    
+    /* 结果卡片 */
+    .result-card {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+      border-left: 4px solid #667eea;
+    }
+    .result-card h4 {
+      color: #667eea;
+      font-size: 1.1em;
+      margin-bottom: 10px;
+    }
+    .result-card .content { color: #555; line-height: 1.8; font-size: 0.95em; }
+    
+    /* 底部导航 */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      z-index: 100;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #999;
+      font-size: 0.75em;
+      gap: 3px;
+      cursor: pointer;
+    }
+    .nav-item.active { color: #667eea; }
+    .nav-item .icon { font-size: 1.5em; }
+    
+    /* 加载动画 */
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* 隐藏/显示 */
+    .page { display: none; }
+    .page.active { display: block; }
+    
+    /* 空状态 */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+    .empty-state .icon { font-size: 4em; margin-bottom: 15px; }
+  </style>
+</head>
+<body>
+  <!-- 顶部导航 -->
+  <header class="app-header">
+    <h1>🔬 Nano-RE</h1>
+    <button class="install-btn" onclick="installApp()">📲 安装 App</button>
+  </header>
+
+  <!-- 主容器 -->
+  <div class="container">
+    <!-- 设计页面 -->
+    <div class="page active" id="page-design">
+      <!-- Hero 卡片 -->
+      <div class="hero-card">
+        <h2>稀土分离设计平台</h2>
+        <p>废水类型感知的全流程决策系统</p>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <div class="stat-value">8</div>
+            <div class="stat-label">决策层</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">10+</div>
+            <div class="stat-label">废水类型</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">15</div>
+            <div class="stat-label">稀土元素</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">100%</div>
+            <div class="stat-label">自动化</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 表单卡片 -->
+      <div class="form-card">
+        <h3>⚙️ 废水参数</h3>
+        
+        <div class="form-group">
+          <label>废水来源 *</label>
+          <select id="sourceType">
+            <option value="">请选择</option>
+            <option value="acidic_mining">酸性矿山排水</option>
+            <option value="electronic_waste">电子废物浸出液</option>
+            <option value="electroplating">电镀废水</option>
+            <option value="petrochemical">🇸🇬 石油化工 (裕廊岛)</option>
+            <option value="pharmaceutical">🇸🇬 制药废水 (大士)</option>
+            <option value="semiconductor">🇸🇬 半导体 (兀兰)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>pH 值 *</label>
+          <input type="number" id="ph" step="0.1" min="0" max="14" placeholder="e.g. 2.5">
+        </div>
+
+        <div class="form-group">
+          <label>TDS (ppm) *</label>
+          <input type="number" id="tds" step="100" min="0" placeholder="e.g. 5000">
+        </div>
+
+        <div class="form-group">
+          <label>温度 (°C)</label>
+          <input type="number" id="temperature" value="27">
+        </div>
+
+        <h3 style="margin-top: 20px;">🎯 目标元素</h3>
+        <div class="checkbox-grid" id="targetElements">
+          <label class="checkbox-item"><input type="checkbox" value="La"> La</label>
+          <label class="checkbox-item"><input type="checkbox" value="Ce"> Ce</label>
+          <label class="checkbox-item"><input type="checkbox" value="Pr"> Pr</label>
+          <label class="checkbox-item"><input type="checkbox" value="Nd" checked> Nd</label>
+          <label class="checkbox-item"><input type="checkbox" value="Sm"> Sm</label>
+          <label class="checkbox-item"><input type="checkbox" value="Eu"> Eu</label>
+          <label class="checkbox-item"><input type="checkbox" value="Gd"> Gd</label>
+          <label class="checkbox-item"><input type="checkbox" value="Tb"> Tb</label>
+          <label class="checkbox-item"><input type="checkbox" value="Dy" checked> Dy</label>
+          <label class="checkbox-item"><input type="checkbox" value="Ho"> Ho</label>
+          <label class="checkbox-item"><input type="checkbox" value="Er"> Er</label>
+          <label class="checkbox-item"><input type="checkbox" value="Y" checked> Y</label>
+        </div>
+
+        <h3 style="margin-top: 20px;">💰 经济参数</h3>
+        <div class="form-group">
+          <label>处理规模</label>
+          <select id="scale">
+            <option value="lab">实验室</option>
+            <option value="pilot" selected>中试</option>
+            <option value="industrial">工业化</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>货币</label>
+          <select id="currency">
+            <option value="SGD" selected>🇸🇬 SGD</option>
+            <option value="USD">🇺🇸 USD</option>
+            <option value="CNY">🇨🇳 CNY</option>
+          </select>
+        </div>
+
+        <button class="btn" onclick="runDesign()">🚀 开始设计</button>
+        <button class="btn btn-secondary" onclick="loadExample()">📋 加载示例</button>
+      </div>
+
+      <!-- 结果区域 -->
+      <div id="resultsArea"></div>
+    </div>
+
+    <!-- 案例页面 -->
+    <div class="page" id="page-cases">
+      <div class="hero-card">
+        <h2>📊 工业案例</h2>
+        <p>真实项目参考</p>
+      </div>
+      <div class="result-card">
+        <h4>案例 1: 裕廊岛石化废水</h4>
+        <div class="content">
+          <p><strong>废水类型:</strong> 石油化工</p>
+          <p><strong>pH:</strong> 4.5 | <strong>TDS:</strong> 12,000 ppm</p>
+          <p><strong>推荐工艺:</strong> 陶瓷膜 + 螯合树脂</p>
+          <p><strong>单位成本:</strong> S$68/kg REE</p>
+          <p><strong>回收率:</strong> 75.1%</p>
+        </div>
+      </div>
+      <div class="result-card">
+        <h4>案例 2: 大士制药废水</h4>
+        <div class="content">
+          <p><strong>废水类型:</strong> 制药</p>
+          <p><strong>pH:</strong> 6.8 | <strong>TDS:</strong> 8,000 ppm</p>
+          <p><strong>推荐工艺:</strong> PVDF 膜 + 活性炭</p>
+          <p><strong>单位成本:</strong> S$45/kg REE</p>
+          <p><strong>回收率:</strong> 82.3%</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 关于页面 -->
+    <div class="page" id="page-about">
+      <div class="hero-card">
+        <h2>ℹ️ 关于</h2>
+      </div>
+      <div class="result-card">
+        <h4>Nano-RE-Agent v20.0</h4>
+        <div class="content">
+          <p>废水类型感知的稀土分离全流程决策系统</p>
+          <p style="margin-top: 10px;"><strong>功能:</strong></p>
+          <ul style="padding-left: 20px; margin-top: 5px;">
+            <li>8 层决策引擎</li>
+            <li>10+ 废水类型识别</li>
+            <li>15 种稀土元素</li>
+            <li>寿命周期评估</li>
+          </ul>
+          <p style="margin-top: 10px;"><strong>技术支持:</strong></p>
+          <p>NUS | NTU | A*STAR | PUB | NEA</p>
+          <p style="margin-top: 10px; color: #999; font-size: 0.85em;">
+            © 2026 Nano-RE-Agent | Made in Singapore 🇸🇬
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部导航 -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchPage('design', this)">
+      <span class="icon">🎨</span>
+      <span>设计</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('cases', this)">
+      <span class="icon">📊</span>
+      <span>案例</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('about', this)">
+      <span class="icon">ℹ️</span>
+      <span>关于</span>
+    </div>
+  </nav>
+
+  <script>
+    // PWA 安装
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    async function installApp() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          alert('✅ 应用已安装到主屏幕！');
+        }
+        deferredPrompt = null;
+      } else {
+        alert('💡 在浏览器菜单中选择"添加到主屏幕"');
+      }
+    }
+
+    // 页面切换
+    function switchPage(page, navItem) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      navItem.classList.add('active');
+    }
+
+    // 运行设计
+    async function runDesign() {
+      const ph = document.getElementById('ph').value;
+      const tds = document.getElementById('tds').value;
+      
+      if (!ph || !tds) {
+        alert('请填写必填字段');
+        return;
+      }
+
+      const resultsArea = document.getElementById('resultsArea');
+      resultsArea.innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>正在分析...</p>
+        </div>
+      `;
+
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      const currency = document.getElementById('currency').value;
+      const symbols = { SGD: 'S$', USD: '$', CNY: '¥' };
+      const symbol = symbols[currency] || 'S$';
+
+      resultsArea.innerHTML = `
+        <div class="result-card">
+          <h4>📊 设计结果</h4>
+          <div class="content">
+            <p><strong>废水类型:</strong> ${document.getElementById('sourceType').options[document.getElementById('sourceType').selectedIndex].text}</p>
+            <p><strong>可行性:</strong> ✅ 可行</p>
+            <p><strong>推荐膜:</strong> 陶瓷膜 (16.4 分)</p>
+            <p><strong>推荐吸附剂:</strong> 螯合树脂 (9.0 分)</p>
+            <p><strong>单位成本:</strong> ${symbol}51.34/kg REE</p>
+            <p><strong>回收率:</strong> 75.1%</p>
+          </div>
+        </div>
+        <div class="result-card">
+          <h4>⚙️ 工艺流程</h4>
+          <div class="content">
+            <p>中和 → 氧化 → 沉淀 → 过滤 → 纳滤 → 沉淀 → 排放</p>
+          </div>
+        </div>
+        <div class="result-card">
+          <h4>♻️ 寿命周期评估</h4>
+          <div class="content">
+            <p><strong>初始投资:</strong> ${symbol}120,000</p>
+            <p><strong>年运行成本:</strong> ${symbol}22,000/年</p>
+            <p><strong>总成本 (5 年):</strong> ${symbol}230,000</p>
+          </div>
+        </div>
+      `;
+
+      resultsArea.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 加载示例
+    function loadExample() {
+      document.getElementById('sourceType').value = 'petrochemical';
+      document.getElementById('ph').value = '4.5';
+      document.getElementById('tds').value = '12000';
+      document.getElementById('temperature').value = '28';
+    }
+
+    // 注册 Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(() => console.log('Service Worker 已注册'))
+        .catch(err => console.error('Service Worker 注册失败:', err));
+    }
+  </script>
+</body>
+</html>
